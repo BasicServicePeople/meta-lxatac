@@ -7,58 +7,42 @@
 ## Use 115220 Baud as default DUT baud rate
 {% set serial = namespace(baud=115200) %}
 
-## External USB Ports of the LXA TAC
-{% set usb = namespace(ports=[
-        ('1',   'platform-5800d000.usb-usb-0:1.1'),
-        ('2',   'platform-5800d000.usb-usb-0:1.2'),
-        ('3',   'platform-5800d000.usb-usb-0:1.3')]) %}
+## GPIO-Expander
+{% set gpio_expander = namespace(pins=[
+        ('gpio1',   '4'),
+        ('gpio2',   '22'),
+        ('gpio3',   '6'),
+        ('gpio4',   '26')]) %}
 
 ## Include user configuration
 ## ==========================
+
+## External USB Ports of the TKL
+{% set usb = namespace(ports=[
+        ('1',   'platform-5800d000.usb-usb-0:1.1'),
+        ('2',   'platform-5800d000.usb-usb-0:1.2'),
+        ('3',   'platform-5800d000.usb-usb-0:1.3'),
+        ('4',   'platform-5800d000.usb-usb-0:1.4')]) %}
 
 {% include 'userconfig.yaml' %}
 
 ## Setup resources
 ## ===============
 
-## UART available via the box connector on the TAC
-serial:
-  RawSerialPort:
-    port: /dev/ttySTM1
-    speed: {{serial.baud}}
+## Set up GPIO expander:
+{% for name, index in gpio_expander.pins %}
 
-out_0:
-  HttpDigitalOutput:
-    url: 'http://{{ hostname }}/v1/output/out_0/asserted'
-    body_asserted: "true"
-    body_deasserted: "false"
+tkl-gpio-expander-{{name}}:
+  SysfsGPIO:
+    index: {{index}}
 
-out_1:
-  HttpDigitalOutput:
-    url: 'http://{{ hostname }}/v1/output/out_1/asserted'
-    body_asserted: "true"
-    body_deasserted: "false"
-
-dut_power:
-  NetworkPowerPort:
-    model: rest
-    host: 'http://{{ hostname }}/v1/dut/powered/compat'
-    index: '0'   # this is 'don't care'
-
-## Set up power switching for the USB ports on the LXA TAC
-{% for idx in range(1,4) %}
-lxatac-usb-power-p{{idx}}:
-  USBPowerPort:
-    match:
-      ID_PATH: platform-5800d000.usb-usb-0:1:1.0
-    index: {{idx}}
 {% endfor %}
 
 ## Set up USB ports after including user configuration to allow
 ## e.g. hub configuration
 {% for idx, sysfs in usb.ports %}
 
-lxatac-usb-ports-p{{idx}}:
+tkl-usb-ports-p{{idx}}:
   AlteraUSBBlaster:
     match:
       'ID_PATH': '{{sysfs}}'
@@ -88,13 +72,13 @@ lxatac-usb-ports-p{{idx}}:
       '@ID_PATH': '{{sysfs}}'
   USBSerialPort:
     match:
-      '@ID_PATH': '{{sysfs}}:1.0'
+      '@ID_PATH': '{{sysfs}}'
   USBVideo:
     match:
       '@ID_PATH': '{{sysfs}}'
 ## Extra USB Ports exported as separate interfaces on the same USB port
 {% for if in [ '1', '2', '3'] %}
-lxatac-usb-ports-p{{idx}}.{{if}}:
+tkl-usb-ports-p{{idx}}.{{if}}:
   USBSerialPort:
     match:
       '@ID_PATH': '{{sysfs}}:1.{{if}}'

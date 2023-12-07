@@ -7,8 +7,9 @@ RequiresMountsFor=/var/cache/labgrid
 [Service]
 Type=simple
 Environment="PYTHONUNBUFFERED=1"
+# Should contain LG_CROSSBAR configuration
 EnvironmentFile=/etc/labgrid/environment
-ExecStart=/usr/bin/python3 /usr/bin/labgrid-exporter -x ws://${LABGRID_COORDINATOR_IP}:${LABGRID_COORDINATOR_PORT}/ws /etc/labgrid/configuration.yaml
+ExecStart=/bin/bash -c '${LG_VENV_PATH}/bin/labgrid-exporter --fqdn -x ws://${LABGRID_COORDINATOR_IP}:${LABGRID_COORDINATOR_PORT}/ws ${LG_EXPORTER_YAML}'
 Restart=on-failure
 RestartForceExitStatus=100
 RestartSec=30
