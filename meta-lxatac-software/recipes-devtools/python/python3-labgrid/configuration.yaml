@@ -9,10 +9,10 @@
 
 ## GPIO-Expander
 {% set gpio_expander = namespace(pins=[
-        ('gpio1',   '4'),
-        ('gpio2',   '22'),
-        ('gpio3',   '6'),
-        ('gpio4',   '26')]) %}
+        ('gpio1',   '516'),
+        ('gpio2',   '534'),
+        ('gpio3',   '518'),
+        ('gpio4',   '538')]) %}
 
 ## Include user configuration
 ## ==========================
